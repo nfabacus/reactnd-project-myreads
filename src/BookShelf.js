@@ -1,36 +1,44 @@
-import React from 'react'
+import React, { Component } from 'react'
 import * as BooksAPI from './BooksAPI'
 
-const BookShelf=(props)=>{
-    const { title, shelf, myBooks } = props
+class BookShelf extends Component {
+    constructor(props){
+        super(props);
+    }
 
-    const handleSelect=(e, book)=>{
+    componentDidMount() {
+        if(this.props.clearSearch) {
+            this.props.clearSearch()
+        }
+    }
+
+    handleSelect=(e, book)=>{
         BooksAPI.update(book, e.target.value).then((result)=>{
             console.log("result: ", result)
-            if(props.updateMyBooks) {
-                props.updateMyBooks()
+            if(this.props.updateMyBooks) {
+                this.props.updateMyBooks()
             }
         })
     }
 
-    const filterBooksByShelf =book=>{
-        if(book.shelf) {
-            return book.shelf===shelf
+    filterBooksByShelf =book=>{
+        console.log("book.shelf:: ", book.shelf)
+        if(this.props.shelf !=="" && book.shelf) {
+            return book.shelf===this.props.shelf
         } else {
             return book
         }
     }
 
-    const renderBookList = ()=>(
-        
-        myBooks.filter(filterBooksByShelf).map((book, index)=>(
-            <li key={index}>
+    renderBookList = ()=>{
+        return this.props.myBooks.filter(this.filterBooksByShelf).map((book, index)=>{
+            return <li key={index}>
               <div className="book">
               <div className="book-top">
                         <div className="book-cover" style={{ width: 128, height: 193, backgroundImage: `url(${book.imageLinks&&book.imageLinks.smallThumbnail})` }}></div>
                         <div className="book-shelf-changer">
                           <select
-                            onChange={(e)=>handleSelect(e, book)}
+                            onChange={(e)=>this.handleSelect(e, book)}
                           >
                             <option value="">Move to...</option>
                             <option value="currentlyReading">Currently Reading {book.shelf==="currentlyReading"&&"\u2713"}</option>
@@ -46,25 +54,26 @@ const BookShelf=(props)=>{
                       </div>
               </div>
             </li>
-        ))
-    )
-    
-    if(myBooks && myBooks.length >0){
-        return (
-            <div className="bookshelf">
-            <h2>
-                {title}
-            </h2>
-            <div className="bookshelf-books">
-                <ol className="books-grid">
-                    {renderBookList()}
-                </ol>
+        })
+    }
+    render() {
+        if(this.props.myBooks && this.props.myBooks.length >0){
+            return (
+                <div className="bookshelf">
+                <h2>
+                    {this.props.title}
+                </h2>
+                <div className="bookshelf-books">
+                    <ol className="books-grid">
+                        {this.renderBookList()}
+                    </ol>
+                </div>
             </div>
-        </div>
-        )
-      } else {
+            )
+        } else {
         return <span></span>
-      }
+        }
+    }
 }
 
 export default BookShelf

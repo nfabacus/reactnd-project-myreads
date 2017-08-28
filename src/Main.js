@@ -4,28 +4,6 @@ import * as BooksAPI from './BooksAPI'
 import BookShelf from './BookShelf'
 
 export default class Main extends Component {
-    constructor(props){
-        super(props);
-        this.state = {
-            myBooks: []
-        }
-    }
-
-    componentDidMount() {
-        BooksAPI.getAll().then((results)=>{
-            this.setState({
-                myBooks: results
-            })
-        })
-    }
-
-    updateMyBooks=()=>{
-        BooksAPI.getAll().then((results)=>{
-            this.setState({
-                myBooks: results
-            })
-        })
-    }
 
     render() {
         return (
@@ -38,20 +16,20 @@ export default class Main extends Component {
                   <BookShelf 
                     title="Currently Reading"
                     shelf="currentlyReading"
-                    myBooks={this.state.myBooks}
-                    updateMyBooks={()=>this.updateMyBooks()}
+                    myBooks={this.props.myBooks}
+                    updateMyBooks={()=>this.props.updateMyBooks()}
                   />
                   <BookShelf 
                     title="Want to Read"
                     shelf="wantToRead"
-                    myBooks={this.state.myBooks}
-                    updateMyBooks={()=>this.updateMyBooks()}
+                    myBooks={this.props.myBooks}
+                    updateMyBooks={()=>this.props.updateMyBooks()}
                    />
                   <BookShelf 
                     title="Read"
                     shelf="read"
-                    myBooks={this.state.myBooks}
-                    updateMyBooks={()=>this.updateMyBooks()}
+                    myBooks={this.props.myBooks}
+                    updateMyBooks={()=>this.props.updateMyBooks()}
                   />
                 </div>
               </div>

@@ -4,12 +4,48 @@ import * as BooksAPI from './BooksAPI'
 import './App.css'
 import Main from './Main'
 import BookShelf from './BookShelf'
+import _ from 'lodash'
 
 
 class BooksApp extends Component {
-  state = {
-    searchTerm: "",
-    books: []
+
+  constructor(props){
+    super(props);
+    this.state = {
+      searchTerm: "",
+      searchedBooks: [],
+      myBooks: []
+    }
+  }
+
+  componentDidMount() {
+      BooksAPI.getAll().then((results)=>{
+          this.setState({
+              myBooks: results
+          })
+      })
+  }
+
+  clearSearch=()=>{
+    this.setState({
+      searchTerm:"",
+      searchedBooks:[]
+    })
+  }
+
+  updateMyBooks=()=>{
+      BooksAPI.getAll().then((results)=>{
+          this.setState({
+              myBooks: results
+          },()=>{
+            const searchedBooksWithoutDuplicate = this.state.searchedBooks.filter(searchedBook=>{
+              const matchedBooks = this.state.myBooks.filter(myBook=>myBook.id === searchedBook.id)
+              return matchedBooks.length === 0
+            })
+            const allSearchedBooks = [...searchedBooksWithoutDuplicate, ...this.state.myBooks]
+            this.setState({searchedBooks: allSearchedBooks})
+          })
+      })
   }
 
   onSearchChange=(e)=>{
@@ -17,12 +53,18 @@ class BooksApp extends Component {
       searchTerm: e.target.value
     },()=>{
       if(this.state.searchTerm.trim() !== "") {
-        BooksAPI.search(this.state.searchTerm, 100).then(books=>{
-          this.setState({books})
+        BooksAPI.search(this.state.searchTerm, 100).then(searchedBooks=>{
+          const searchedBooksWithoutDuplicate = searchedBooks.filter(searchedBook=>{
+            const matchedBooks = this.state.myBooks.filter(myBook=>myBook.id === searchedBook.id)
+            return matchedBooks.length === 0
+          })
+
+          const allSearchedBooks = [...searchedBooksWithoutDuplicate, ...this.state.myBooks]
+          this.setState({searchedBooks: allSearchedBooks})
         })
       } else {
         this.setState({
-          books:[]
+          searchedBooks:[]
         })
       }
     })
@@ -33,7 +75,7 @@ class BooksApp extends Component {
     return (
       <div className="app">
         <Switch>
-          <Route path="/search" render={()=>(
+          <Route path="/search" render={(props)=>(
             <div className="search-books">
               <div className="search-books-bar">
                 <Link to="/" className="close-search">Close</Link>
@@ -52,7 +94,9 @@ class BooksApp extends Component {
                   <BookShelf
                     title=""
                     shelf=""
-                    myBooks={this.state.books}
+                    myBooks={this.state.searchedBooks}
+                    clearSearch={()=>this.clearSearch()}
+                    updateMyBooks={()=>this.updateMyBooks()}
                   />
                 </ol>
               </div>
@@ -60,7 +104,10 @@ class BooksApp extends Component {
           )}/>
 
           <Route path="/" render={()=>(
-            <Main />
+            <Main
+              updateMyBooks={()=>this.updateMyBooks()}
+              myBooks={this.state.myBooks}
+            />
           )} />
         </Switch>
       </div>
